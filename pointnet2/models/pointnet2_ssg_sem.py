@@ -49,10 +49,10 @@ class PointNet2SemSegSSG(PointNet2ClassificationSSG):
         )
 
         self.FP_modules = nn.ModuleList()
-        self.FP_modules.append(PointnetFPModule(mlp=[128 + 6, 128, 128, 128]))
-        self.FP_modules.append(PointnetFPModule(mlp=[256 + 64, 256, 128]))
-        self.FP_modules.append(PointnetFPModule(mlp=[256 + 128, 256, 256]))
-        self.FP_modules.append(PointnetFPModule(mlp=[512 + 256, 256, 256]))
+        self.FP_modules.append(PointnetFPModule(mlp=[128, 128, 128, 128]))
+        self.FP_modules.append(PointnetFPModule(mlp=[256, 256, 128]))
+        self.FP_modules.append(PointnetFPModule(mlp=[256, 256, 256]))
+        self.FP_modules.append(PointnetFPModule(mlp=[512, 256, 256]))
 
         self.fc_lyaer = nn.Sequential(
             nn.Conv1d(128, 128, kernel_size=1, bias=False),
@@ -82,11 +82,13 @@ class PointNet2SemSegSSG(PointNet2ClassificationSSG):
             l_xyz.append(li_xyz)
             l_features.append(li_features)
 
+        #feature = l_features[len(l_features) - 1].transpose(1, 2)
+        #xyz = l_xyz[len(l_xyz) - 1]
+
         for i in range(-1, -(len(self.FP_modules) + 1), -1):
             l_features[i - 1] = self.FP_modules[i](
-                l_xyz[i - 1], l_xyz[i], l_features[i - 1], l_features[i]
+                l_xyz[i - 1], l_xyz[i], None, l_features[i]
             )
-
         return self.fc_lyaer(l_features[0])
 
     def prepare_data(self):
